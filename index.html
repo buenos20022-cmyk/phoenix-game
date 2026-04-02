@@ -110,6 +110,38 @@
       cursor: default;
     }
 
+    .cell.explode .front,
+    .cell.explode .back.mine {
+      animation: bombShake 0.38s ease-in-out;
+    }
+
+    .blast {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      pointer-events: none;
+      animation: blastPop 0.55s ease-out forwards;
+      z-index: 5;
+      filter: drop-shadow(0 0 16px rgba(255, 138, 0, 0.8));
+    }
+
+    @keyframes bombShake {
+      0%, 100% { transform: translateX(0) scale(1); }
+      20% { transform: translateX(-4px) scale(1.03); }
+      40% { transform: translateX(4px) scale(1.05); }
+      60% { transform: translateX(-3px) scale(1.04); }
+      80% { transform: translateX(3px) scale(1.02); }
+    }
+
+    @keyframes blastPop {
+      0% { transform: scale(0.25); opacity: 0; }
+      40% { transform: scale(1.22); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
     .inner {
       position: relative;
       width: 100%;
@@ -265,61 +297,6 @@
     .error-box.show {
       display: block;
     }
-  
-
-    .cell.hit-mine {
-      animation: mineShake 0.48s ease;
-    }
-
-    @keyframes mineShake {
-      0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(-3px) rotate(-1deg); }
-      40% { transform: translateX(3px) rotate(1deg); }
-      60% { transform: translateX(-2px) rotate(-1deg); }
-      80% { transform: translateX(2px) rotate(1deg); }
-    }
-
-    .explosion {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 3;
-    }
-
-    .explosion::before,
-    .explosion::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 18%;
-      height: 18%;
-      border-radius: 999px;
-      transform: translate(-50%, -50%) scale(0.2);
-      opacity: 0;
-    }
-
-    .explosion::before {
-      background: radial-gradient(circle, rgba(255,244,140,0.95) 0%, rgba(255,170,0,0.9) 36%, rgba(255,90,0,0.7) 62%, rgba(255,50,0,0) 100%);
-      animation: explosionBlast 0.68s ease-out forwards;
-    }
-
-    .explosion::after {
-      background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,210,110,0.8) 28%, rgba(255,130,0,0) 72%);
-      animation: explosionFlash 0.45s ease-out forwards;
-    }
-
-    @keyframes explosionBlast {
-      0% { transform: translate(-50%, -50%) scale(0.18); opacity: 0; }
-      15% { opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(5.8); opacity: 0; }
-    }
-
-    @keyframes explosionFlash {
-      0% { transform: translate(-50%, -50%) scale(0.1); opacity: 0; }
-      20% { opacity: 0.95; }
-      100% { transform: translate(-50%, -50%) scale(3.2); opacity: 0; }
-    }
   </style>
 </head>
 <body>
@@ -350,12 +327,12 @@
 
   <div id="overlay" class="overlay">
     <div class="modal">
-      <div id="overlayIcon" class="phoenix-big">🐦‍🔥</div>
-      <div id="overlayReward" class="reward">+1000 DOGS</div>
-      <div id="overlayTitle" style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">
+      <div class="phoenix-big">🐦‍🔥</div>
+      <div class="reward">+1000 DOGS</div>
+      <div style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">
         ФЕНИКС НАЙДЕН!
       </div>
-      <div id="overlayText" class="small">Продолжаем игру</div>
+      <div class="small">Продолжаем игру</div>
       <button id="claimBtn" class="btn primary">Продолжить</button>
     </div>
   </div>
@@ -367,6 +344,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id") || "";
+    const boardParam = params.get("board") || "";
 
     const gridEl = document.getElementById("grid");
     const msgEl = document.getElementById("message");
@@ -374,10 +352,6 @@
     const claimBtn = document.getElementById("claimBtn");
     const closeBtn = document.getElementById("closeBtn");
     const errorBox = document.getElementById("errorBox");
-    const overlayIcon = document.getElementById("overlayIcon");
-    const overlayReward = document.getElementById("overlayReward");
-    const overlayTitle = document.getElementById("overlayTitle");
-    const overlayText = document.getElementById("overlayText");
 
     let board = [];
     let finished = false;
@@ -385,32 +359,32 @@
     let openedCount = 0;
     const totalAttempts = 5;
     let currentLocked = false;
-    let pendingFinishAfterOverlay = false;
-    let finalTotal = 0;
+    let pickedIndex = null;
 
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+    function decodeBoard(encoded) {
+      if (!encoded) return [];
+      try {
+        const normalized = encoded.replace(/-/g, "+").replace(/_/g, "/");
+        const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+        const jsonText = decodeURIComponent(escape(window.atob(padded)));
+        const rawBoard = JSON.parse(jsonText);
+
+        if (!Array.isArray(rawBoard) || rawBoard.length !== 25) {
+          return [];
+        }
+
+        return rawBoard.map((item, index) => ({
+          id: index,
+          type: item.type,
+          value: Number(item.value || 0),
+          icon: item.type === "mine" ? "💣" : item.type === "phoenix" ? "🐦‍🔥" : `+${Number(item.value || 0)}`,
+          open: false,
+          explode: false,
+        }));
+      } catch (error) {
+        console.error("BOARD_DECODE_ERROR", error);
+        return [];
       }
-      return arr;
-    }
-
-    function buildBoard() {
-      const items = [];
-
-      for (let i = 0; i < 8; i++) {
-        items.push({ type: "mine", value: 0, icon: "💣", open: false, exploding: false });
-      }
-
-      const bonusValues = [5, 5, 5, 5, 10, 10, 10, 10, 12, 12, 12, 15, 15, 15, 20, 20];
-      for (const value of bonusValues) {
-        items.push({ type: "bonus", value, icon: `+${value}`, open: false, exploding: false });
-      }
-
-      items.push({ type: "phoenix", value: 1000, icon: "🐦‍🔥", open: false, exploding: false });
-
-      board = shuffle(items).map((item, index) => ({ id: index, ...item }));
     }
 
     function showError(text) {
@@ -418,25 +392,9 @@
       errorBox.classList.add("show");
     }
 
-    function sendPick(cellIndex) {
-      if (!sessionId) {
-        showError("Ошибка: отсутствует session_id");
-        return;
-      }
-
-      tg.sendData(JSON.stringify({
-        game: "phoenix",
-        session_id: sessionId,
-        cell_index: cellIndex
-      }));
-    }
-
-    function recalcTotal() {
-      finalTotal = board.reduce((sum, cell) => sum + (cell.open ? Number(cell.value || 0) : 0), 0);
-    }
-
-    function updateHeader() {
-      msgEl.textContent = `Попытки: ${openedCount}/${totalAttempts} • Собрано: ${finalTotal} DOGS`;
+    function hideError() {
+      errorBox.classList.remove("show");
+      errorBox.textContent = "";
     }
 
     function render() {
@@ -444,7 +402,7 @@
 
       board.forEach((cell, index) => {
         const btn = document.createElement("button");
-        btn.className = "cell" + (cell.open ? " open" : "") + (cell.exploding ? " hit-mine" : "");
+        btn.className = "cell" + (cell.open ? " open" : "") + (cell.explode ? " explode" : "");
         btn.disabled = finished || cell.open || !validSession || currentLocked;
 
         btn.innerHTML = `
@@ -453,8 +411,8 @@
             <div class="face back ${cell.type}">
               ${cell.type === "bonus" ? `<span>${cell.icon}</span>` : cell.icon}
             </div>
+            ${cell.explode ? '<div class="blast">💥</div>' : ""}
           </div>
-          ${cell.exploding ? '<div class="explosion"></div>' : ''}
         `;
 
         btn.addEventListener("click", () => openCell(index));
@@ -462,109 +420,106 @@
       });
     }
 
-    function showOverlay({ icon, reward, title, text, buttonText = "Продолжить" }) {
-      overlayIcon.textContent = icon;
-      overlayReward.textContent = reward;
-      overlayTitle.textContent = title;
-      overlayText.textContent = text;
-      claimBtn.textContent = buttonText;
-      overlay.classList.add("show");
+    function sendPick(cellIndex) {
+      if (!sessionId) {
+        showError("Ошибка: отсутствует session_id");
+        currentLocked = false;
+        render();
+        return;
+      }
+
+      const payload = {
+        game: "phoenix",
+        session_id: sessionId,
+        cell_index: cellIndex
+      };
+
+      tg.sendData(JSON.stringify(payload));
     }
 
-    function hideOverlay() {
-      overlay.classList.remove("show");
+    function updateHeader() {
+      msgEl.textContent = `Попытки: ${openedCount}/${totalAttempts}`;
     }
 
     function finishGame() {
       finished = true;
-      updateHeader();
+      msgEl.textContent = "Игра завершена. Общий результат отправлен в бота";
       render();
-      setTimeout(() => tg.close(), 1600);
-    }
-
-    function showFinalOverlay() {
-      showOverlay({
-        icon: "🏁",
-        reward: `${finalTotal} DOGS`,
-        title: "ИГРА ЗАВЕРШЕНА",
-        text: `5 попыток использовано. Общий результат: ${finalTotal} DOGS. Начисление отправлено в бота.`,
-        buttonText: "Завершить"
-      });
+      setTimeout(() => tg.close(), 1500);
     }
 
     function openCell(index) {
       if (finished || currentLocked || !validSession) return;
 
       const cell = board[index];
-      if (cell.open) return;
+      if (!cell || cell.open) return;
 
+      hideError();
       currentLocked = true;
+      pickedIndex = index;
+
       cell.open = true;
       openedCount += 1;
-      recalcTotal();
-
-      if (cell.type === "mine") {
-        cell.exploding = true;
-        setTimeout(() => {
-          cell.exploding = false;
-          render();
-        }, 700);
-      }
-
       render();
-      updateHeader();
+
+      const afterRevealDelay = cell.type === "mine" ? 900 : 650;
 
       setTimeout(() => {
-        sendPick(index);
+        if (cell.type === "mine") {
+          cell.explode = true;
+          render();
+        }
 
         if (cell.type === "phoenix") {
-          pendingFinishAfterOverlay = openedCount >= totalAttempts;
-          showOverlay({
-            icon: "🐦‍🔥",
-            reward: "+1000 DOGS",
-            title: "ФЕНИКС НАЙДЕН!",
-            text: pendingFinishAfterOverlay
-              ? `Это была 5-я попытка. Общий результат: ${finalTotal} DOGS.`
-              : `Пока собрано: ${finalTotal} DOGS. Продолжаем игру.`
-          });
+          updateHeader();
+          overlay.classList.add("show");
           return;
         }
 
+        sendPick(index);
+        updateHeader();
+
         if (openedCount >= totalAttempts) {
-          pendingFinishAfterOverlay = true;
-          showFinalOverlay();
+          finishGame();
           return;
         }
 
         currentLocked = false;
         render();
-      }, cell.type === "mine" ? 820 : 680);
+      }, afterRevealDelay);
     }
 
     claimBtn.addEventListener("click", () => {
-      hideOverlay();
+      overlay.classList.remove("show");
 
-      if (!pendingFinishAfterOverlay) {
+      if (pickedIndex === null) {
         currentLocked = false;
         render();
         return;
       }
 
-      pendingFinishAfterOverlay = false;
-      finishGame();
+      sendPick(pickedIndex);
+      updateHeader();
+
+      if (openedCount >= totalAttempts) {
+        finishGame();
+        return;
+      }
+
+      currentLocked = false;
+      render();
     });
 
-    closeBtn.addEventListener("click", () => tg.close());
+    closeBtn.addEventListener("click", () => {
+      tg.close();
+    });
 
-    buildBoard();
+    board = decodeBoard(boardParam);
 
-    if (!validSession) {
+    if (!validSession || !board.length) {
       finished = true;
       msgEl.textContent = "⚠️ Игровая сессия не найдена";
       showError("Открой игру заново из бота.");
-    } else {
-      recalcTotal();
-      updateHeader();
     }
 
     render();
