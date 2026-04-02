@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Найди Феникса</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    alert(!!window.Telegram && !!window.Telegram.WebApp);
   <style>
     :root {
       --bg1: #12091f;
@@ -746,10 +745,11 @@
       revealAllCells();
       updateHeader(`итог: ${totalReward} DOGS`);
       resultTitle.textContent = "Игра завершена";
-      resultText.textContent = `Общий выигрыш: ${totalReward} DOGS. Выигрыш отправлен в бот и будет зачислен на баланс.`;
+      resultText.textContent = `Общий выигрыш: ${totalReward} DOGS`;
 
-      
       if (sessionId) {
+        const tg = window.Telegram.WebApp;
+
         tg.sendData(JSON.stringify({
           game: "phoenix",
           action: "finish",
@@ -819,7 +819,17 @@
       }, 450);
     }
 
-    function finalizePick(index) {
+    function sendPick(index) {
+      if (!sessionId) return;
+
+      const tg = window.Telegram.WebApp;
+
+      tg.sendData(JSON.stringify({
+        game: "phoenix",
+        session_id: sessionId,
+        cell_index: index
+      }));
+    }
       const cell = board[index];
       sendPick(index);
 
@@ -835,7 +845,7 @@
 
       currentLocked = false;
       render();
-    }
+    
 
     function openCell(index) {
       if (finished || currentLocked || !validSession) return;
