@@ -25,11 +25,11 @@
       --phoenix1: #5a2600;
       --phoenix2: #2b1200;
 
-      --goldCoin1: #7a5a08;
-      --goldCoin2: #4a3300;
+      --goldCoin1: #8a6908;
+      --goldCoin2: #5b3d00;
 
-      --silverCoin1: #59687b;
-      --silverCoin2: #2b3542;
+      --silverCoin1: #7a879b;
+      --silverCoin2: #495466;
 
       --pickedFront1: #4f347c;
       --pickedFront2: #2f1d55;
@@ -39,10 +39,10 @@
       --pickedMine2: #521321;
       --pickedPhoenix1: #7b3d00;
       --pickedPhoenix2: #4b2100;
-      --pickedGold1: #8a6808;
-      --pickedGold2: #5b3d00;
-      --pickedSilver1: #6d7c92;
-      --pickedSilver2: #394354;
+      --pickedGold1: #9a7408;
+      --pickedGold2: #6a4700;
+      --pickedSilver1: #8795ad;
+      --pickedSilver2: #556071;
     }
 
     * {
@@ -158,6 +158,10 @@
       animation: prizeShine 0.9s ease;
     }
 
+    .cell.bonus-pop .back.bonus {
+      animation: bonusCardGlow 0.55s ease;
+    }
+
     .face {
       position: absolute;
       inset: 0;
@@ -203,16 +207,16 @@
 
     .back.gold_coin {
       background:
-        radial-gradient(circle at center, rgba(255,220,120,0.38), transparent 55%),
+        radial-gradient(circle at center, rgba(255,220,120,0.45), transparent 55%),
         linear-gradient(180deg, var(--goldCoin1), var(--goldCoin2));
-      box-shadow: 0 0 22px rgba(255,213,74,0.28);
+      box-shadow: 0 0 22px rgba(255,213,74,0.30);
     }
 
     .back.silver_coin {
       background:
-        radial-gradient(circle at center, rgba(220,230,255,0.24), transparent 55%),
+        radial-gradient(circle at center, rgba(220,230,255,0.30), transparent 55%),
         linear-gradient(180deg, var(--silverCoin1), var(--silverCoin2));
-      box-shadow: 0 0 18px rgba(220,230,255,0.16);
+      box-shadow: 0 0 18px rgba(220,230,255,0.20);
     }
 
     .bonus-overlay {
@@ -232,15 +236,17 @@
       letter-spacing: 0.2px;
       font-variant-numeric: tabular-nums;
       opacity: 0;
-      transform: scale(0.9);
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      transform: rotateY(180deg) scale(0.7);
+      transition: opacity 0.18s ease;
       pointer-events: none;
       z-index: 8;
+      backface-visibility: hidden;
     }
 
     .bonus-overlay.show {
       opacity: 1;
-      transform: scale(1);
+      transform: rotateY(180deg) scale(1);
+      animation: bonusValuePop 0.42s ease;
     }
 
     .bonus-overlay.picked {
@@ -277,19 +283,47 @@
 
     .cell.revealed-picked .back.gold_coin {
       background:
-        radial-gradient(circle at center, rgba(255,225,120,0.42), transparent 55%),
+        radial-gradient(circle at center, rgba(255,225,120,0.46), transparent 55%),
         linear-gradient(180deg, var(--pickedGold1), var(--pickedGold2));
     }
 
     .cell.revealed-picked .back.silver_coin {
       background:
-        radial-gradient(circle at center, rgba(235,240,255,0.30), transparent 55%),
+        radial-gradient(circle at center, rgba(235,240,255,0.34), transparent 55%),
         linear-gradient(180deg, var(--pickedSilver1), var(--pickedSilver2));
     }
 
     .prize-icon {
-      font-size: 34px;
-      filter: drop-shadow(0 0 10px rgba(255,255,255,0.18));
+      font-size: 36px;
+      filter: drop-shadow(0 0 12px rgba(255,255,255,0.16));
+      transform: translateZ(2px);
+    }
+
+    .coin-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      box-shadow:
+        inset 0 2px 3px rgba(255,255,255,0.30),
+        inset 0 -3px 5px rgba(0,0,0,0.18),
+        0 4px 12px rgba(0,0,0,0.22);
+    }
+
+    .coin-icon.gold {
+      background: radial-gradient(circle at 30% 30%, #fff0a8 0%, #ffd54a 35%, #d9a400 70%, #9a6b00 100%);
+      color: #7a5200;
+      border: 1px solid rgba(255, 235, 170, 0.55);
+    }
+
+    .coin-icon.silver {
+      background: radial-gradient(circle at 30% 30%, #ffffff 0%, #dce4f0 35%, #a9b5c6 70%, #68778d 100%);
+      color: #506072;
+      border: 1px solid rgba(255,255,255,0.45);
     }
 
     .blast {
@@ -364,9 +398,22 @@
     }
 
     .modal-icon {
-      font-size: 72px;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       animation: prizePop 0.7s ease forwards;
       filter: drop-shadow(0 0 22px rgba(255,183,3,0.35));
+    }
+
+    .modal-icon .coin-icon {
+      width: 72px;
+      height: 72px;
+      font-size: 34px;
+    }
+
+    .modal-icon .prize-icon {
+      font-size: 72px;
     }
 
     .reward {
@@ -450,6 +497,18 @@
       50% { transform: rotateY(180deg) scale(1.08); filter: brightness(1.25); }
       100% { transform: rotateY(180deg) scale(1.02); filter: brightness(1); }
     }
+
+    @keyframes bonusValuePop {
+      0% { transform: rotateY(180deg) scale(0.55); opacity: 0; }
+      65% { transform: rotateY(180deg) scale(1.12); opacity: 1; }
+      100% { transform: rotateY(180deg) scale(1); opacity: 1; }
+    }
+
+    @keyframes bonusCardGlow {
+      0% { filter: brightness(1); }
+      45% { filter: brightness(1.22); }
+      100% { filter: brightness(1); }
+    }
   </style>
 </head>
 <body>
@@ -488,7 +547,9 @@
 
   <div id="overlay" class="overlay">
     <div class="modal">
-      <div id="modalIcon" class="modal-icon">🔥</div>
+      <div id="modalIcon" class="modal-icon">
+        <span class="prize-icon">🔥</span>
+      </div>
       <div id="modalReward" class="reward">3000 DOGS</div>
       <div id="modalTitle" style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">
         ФЕНИКС ОТКРЫТ
@@ -530,6 +591,26 @@
     let currentLocked = false;
     let totalReward = 0;
 
+    function normalizeCellType(rawType, rawValue) {
+      const value = Number(rawValue || 0);
+
+      if (rawType === "phoenix" || value === 3000) return "phoenix";
+      if (rawType === "gold_coin" || value === 2000) return "gold_coin";
+      if (rawType === "silver_coin" || value === 500) return "silver_coin";
+
+      return rawType;
+    }
+
+    function getNormalizedValue(type, rawValue) {
+      const value = Number(rawValue || 0);
+
+      if (type === "phoenix") return 3000;
+      if (type === "gold_coin") return 2000;
+      if (type === "silver_coin") return 500;
+
+      return value;
+    }
+
     function decodeBoard(encoded) {
       if (!encoded) return [];
 
@@ -544,26 +625,18 @@
         }
 
         return rawBoard.map((item, index) => {
-          const type = item.type;
-          let value = Number(item.value || 0);
-
-          if (type === "phoenix") value = 3000;
-          if (type === "gold_coin") value = 2000;
-          if (type === "silver_coin") value = 500;
+          const type = normalizeCellType(item.type, item.value);
+          const value = getNormalizedValue(type, item.value);
 
           return {
             id: index,
             type,
             value,
-            icon:
-              type === "mine" ? "💣" :
-              type === "phoenix" ? "🔥" :
-              type === "gold_coin" ? "🟡" :
-              type === "silver_coin" ? "⚪" : "",
             open: false,
             explode: false,
             picked: false,
             shine: false,
+            bonusPop: false,
           };
         });
       } catch (error) {
@@ -587,12 +660,24 @@
       msgEl.textContent = extraText ? `${base} • ${extraText}` : base;
     }
 
+    function getCoinMarkup(kind, symbol) {
+      return `<span class="coin-icon ${kind}">${symbol}</span>`;
+    }
+
     function getBackContent(cell) {
       if (cell.type === "bonus") return "";
       if (cell.type === "phoenix") return `<span class="prize-icon">🔥</span>`;
-      if (cell.type === "gold_coin") return `<span class="prize-icon">🟡</span>`;
-      if (cell.type === "silver_coin") return `<span class="prize-icon">⚪</span>`;
-      return cell.icon;
+      if (cell.type === "gold_coin") return getCoinMarkup("gold", "◉");
+      if (cell.type === "silver_coin") return getCoinMarkup("silver", "◉");
+      if (cell.type === "mine") return "💣";
+      return "";
+    }
+
+    function getModalIconMarkup(type) {
+      if (type === "phoenix") return `<span class="prize-icon">🔥</span>`;
+      if (type === "gold_coin") return getCoinMarkup("gold", "◉");
+      if (type === "silver_coin") return getCoinMarkup("silver", "◉");
+      return `<span class="prize-icon">🔥</span>`;
     }
 
     function render() {
@@ -605,7 +690,8 @@
           (cell.open ? " open" : "") +
           (cell.explode ? " explode" : "") +
           (cell.picked ? " revealed-picked" : "") +
-          (cell.shine ? " shine" : "");
+          (cell.shine ? " shine" : "") +
+          (cell.bonusPop ? " bonus-pop" : "");
 
         btn.disabled = finished || cell.open || !validSession || currentLocked;
 
@@ -664,18 +750,17 @@
     }
 
     function showPrizeModal(cell) {
+      modalIcon.innerHTML = getModalIconMarkup(cell.type);
+
       if (cell.type === "phoenix") {
-        modalIcon.textContent = "🔥";
         modalReward.textContent = "3000 DOGS";
         modalTitle.textContent = "ФЕНИКС ОТКРЫТ";
         modalText.textContent = "Огненный феникс найден. Продолжаем игру.";
       } else if (cell.type === "gold_coin") {
-        modalIcon.textContent = "🟡";
         modalReward.textContent = "2000 DOGS";
         modalTitle.textContent = "ЗОЛОТАЯ МОНЕТА";
         modalText.textContent = "Вы открыли золотую монету. Продолжаем игру.";
       } else if (cell.type === "silver_coin") {
-        modalIcon.textContent = "⚪";
         modalReward.textContent = "500 DOGS";
         modalTitle.textContent = "СЕРЕБРЯНАЯ МОНЕТА";
         modalText.textContent = "Вы открыли серебряную монету. Продолжаем игру.";
@@ -713,7 +798,13 @@
         return;
       }
 
+      cell.bonusPop = true;
       updateHeader(`бонус ${cell.value} DOGS`);
+
+      setTimeout(() => {
+        cell.bonusPop = false;
+        render();
+      }, 450);
     }
 
     function finalizePick(index) {
