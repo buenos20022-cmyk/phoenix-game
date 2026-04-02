@@ -59,6 +59,7 @@
       margin-bottom: 8px;
       background: linear-gradient(90deg, var(--gold), var(--orange), var(--pink));
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
@@ -271,7 +272,7 @@
     <div class="card">
       <div class="title">🔥 Найди Феникса</div>
       <div class="subtitle">
-        Открой одну клетку.<br>
+        Сделай 5 попыток.<br>
         На поле спрятаны мины, бонусы и один феникс.
       </div>
 
@@ -283,7 +284,7 @@
 
       <div id="grid" class="grid"></div>
 
-      <div id="message" class="message">Выбери клетку 👇</div>
+      <div id="message" class="message">Попытки: 0/5</div>
       <div id="errorBox" class="error-box"></div>
 
       <div class="controls">
@@ -299,8 +300,8 @@
       <div style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">
         ФЕНИКС НАЙДЕН!
       </div>
-      <div class="small">Награда будет отправлена в бота</div>
-      <button id="claimBtn" class="btn primary">Забрать награду</button>
+      <div class="small">Продолжаем игру</div>
+      <button id="claimBtn" class="btn primary">Продолжить</button>
     </div>
   </div>
 
@@ -321,9 +322,11 @@
 
     let board = [];
     let finished = false;
-    let picked = false;
-    let pickedIndex = null;
     let validSession = Boolean(sessionId);
+    let openedCount = 0;
+    const totalAttempts = 5;
+    let currentLocked = false;
+    let pickedIndex = null;
 
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
@@ -337,20 +340,19 @@
       const items = [];
 
       for (let i = 0; i < 8; i++) {
-        items.push({ type: "mine", value: 0, icon: "💣" });
+        items.push({ type: "mine", value: 0, icon: "💣", open: false });
       }
 
       const bonusValues = [5, 5, 5, 5, 10, 10, 10, 10, 12, 12, 12, 15, 15, 15, 20, 20];
       for (const value of bonusValues) {
-        items.push({ type: "bonus", value, icon: `+${value}` });
+        items.push({ type: "bonus", value, icon: `+${value}`, open: false });
       }
 
-      items.push({ type: "phoenix", value: 1000, icon: "🐦‍🔥" });
+      items.push({ type: "phoenix", value: 1000, icon: "🐦‍🔥", open: false });
 
       board = shuffle(items).map((item, index) => ({
         id: index,
-        ...item,
-        open: false
+        ...item
       }));
     }
 
@@ -365,7 +367,7 @@
       board.forEach((cell, index) => {
         const btn = document.createElement("button");
         btn.className = "cell" + (cell.open ? " open" : "");
-        btn.disabled = finished || cell.open || !validSession;
+        btn.disabled = finished || cell.open || !validSession || currentLocked;
 
         btn.innerHTML = `
           <div class="inner">
@@ -394,42 +396,66 @@
       };
 
       tg.sendData(JSON.stringify(payload));
-      setTimeout(() => tg.close(), 250);
+    }
+
+    function updateHeader() {
+      msgEl.textContent = `Попытки: ${openedCount}/${totalAttempts}`;
+    }
+
+    function finishGame() {
+      finished = true;
+      msgEl.textContent = "Ваш результат отправлен в бота";
+      render();
+      setTimeout(() => tg.close(), 1200);
     }
 
     function openCell(index) {
-      if (finished || picked || !validSession) return;
-
-      picked = true;
-      pickedIndex = index;
+      if (finished || currentLocked || !validSession) return;
 
       const cell = board[index];
+      if (cell.open) return;
+
+      currentLocked = true;
+      pickedIndex = index;
+
       cell.open = true;
+      openedCount += 1;
       render();
 
       setTimeout(() => {
-        finished = true;
-
         if (cell.type === "phoenix") {
-          msgEl.textContent = "🔥 Феникс найден!";
+          updateHeader();
           overlay.classList.add("show");
           return;
         }
 
-        if (cell.type === "bonus") {
-          msgEl.textContent = `🎁 Бонусная клетка`;
-          sendPick(index);
+        sendPick(index);
+
+        if (openedCount >= totalAttempts) {
+          finishGame();
           return;
         }
 
-        msgEl.textContent = "💣 Мина!";
-        sendPick(index);
+        updateHeader();
+        currentLocked = false;
+        render();
       }, 650);
     }
 
     claimBtn.addEventListener("click", () => {
+      overlay.classList.remove("show");
+
       if (pickedIndex === null) return;
+
       sendPick(pickedIndex);
+
+      if (openedCount >= totalAttempts) {
+        finishGame();
+        return;
+      }
+
+      currentLocked = false;
+      render();
     });
 
     closeBtn.addEventListener("click", () => {
