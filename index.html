@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Найди Феникса</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg1: #12091f;
+      --bg2: #22103a;
+      --card: rgba(27, 22, 48, 0.9);
+      --stroke: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --muted: #c9c4de;
+      --gold: #ffd54a;
+      --orange: #ff8a00;
+      --pink: #ff3d7f;
+      --red1: #4b1320;
+      --red2: #2a0d15;
+      --blue1: #12384b;
+      --blue2: #102738;
+      --phoenix1: #5a2600;
+      --phoenix2: #2b1200;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, #3b155f 0%, transparent 32%),
+        radial-gradient(circle at top right, #4a1d35 0%, transparent 30%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      padding: 16px;
+    }
+
+    .wrap {
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 22px 60px rgba(0,0,0,0.35);
+      backdrop-filter: blur(10px);
+    }
+
+    .title {
+      font-size: 30px;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, var(--gold), var(--orange), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-bottom: 16px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .cell {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+      perspective: 1000px;
+    }
+
+    .cell:disabled {
+      cursor: default;
+    }
+
+    .inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.55s ease;
+    }
+
+    .cell.open .inner {
+      transform: rotateY(180deg) scale(1.02);
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backface-visibility: hidden;
+      font-weight: 800;
+    }
+
+    .front {
+      background: linear-gradient(180deg, #2d234e, #1e1738);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,0.06),
+        0 10px 18px rgba(0,0,0,0.24);
+      font-size: 28px;
+    }
+
+    .back {
+      transform: rotateY(180deg);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 28px;
+    }
+
+    .back.mine {
+      background: linear-gradient(180deg, var(--red1), var(--red2));
+    }
+
+    .back.bonus {
+      background: linear-gradient(180deg, var(--blue1), var(--blue2));
+      font-size: 22px;
+    }
+
+    .back.phoenix {
+      background:
+        radial-gradient(circle at center, rgba(255,213,74,0.35), transparent 55%),
+        linear-gradient(180deg, var(--phoenix1), var(--phoenix2));
+      box-shadow: 0 0 24px rgba(255,170,0,0.45);
+      animation: phoenixPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes phoenixPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(255,170,0,0.35); }
+      50% { box-shadow: 0 0 42px rgba(255,170,0,0.75); }
+    }
+
+    .message {
+      min-height: 52px;
+      margin-top: 16px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn {
+      flex: 1;
+      border: none;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 800;
+      color: white;
+      cursor: pointer;
+    }
+
+    .btn.dark {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .btn.primary {
+      background: linear-gradient(90deg, var(--orange), var(--pink));
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8,5,18,0.75);
+      padding: 20px;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(420px, 100%);
+      background: linear-gradient(180deg, #24153d, #1a102e);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 26px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    }
+
+    .phoenix-big {
+      font-size: 72px;
+      filter: drop-shadow(0 0 22px rgba(255,183,3,0.65));
+      animation: phoenixPop 0.9s ease forwards;
+    }
+
+    @keyframes phoenixPop {
+      0% { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+      60% { transform: scale(1.18) rotate(8deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
+
+    .reward {
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--gold);
+      margin: 12px 0 4px;
+    }
+
+    .small {
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .error-box {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255, 77, 109, 0.14);
+      border: 1px solid rgba(255, 77, 109, 0.28);
+      color: #ffd7df;
+      text-align: center;
+      display: none;
+    }
+
+    .error-box.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="title">🔥 Найди Феникса</div>
+      <div class="subtitle">
+        Открой одну клетку.<br>
+        На поле спрятаны мины, бонусы и один феникс.
+      </div>
+
+      <div class="stats">
+        <div class="stat"><b>8</b><span>Мин</span></div>
+        <div class="stat"><b>16</b><span>Бонусов</span></div>
+        <div class="stat"><b>1000</b><span>DOGS</span></div>
+      </div>
+
+      <div id="grid" class="grid"></div>
+
+      <div id="message" class="message">Выбери клетку 👇</div>
+      <div id="errorBox" class="error-box"></div>
+
+      <div class="controls">
+        <button id="closeBtn" class="btn dark">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay" class="overlay">
+    <div class="modal">
+      <div class="phoenix-big">🐦‍🔥</div>
+      <div class="reward">+1000 DOGS</div>
+      <div style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">
+        ФЕНИКС НАЙДЕН!
+      </div>
+      <div class="small">Награда будет отправлена в бота</div>
+      <button id="claimBtn" class="btn primary">Забрать награду</button>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id") || "";
+
+    const gridEl = document.getElementById("grid");
+    const msgEl = document.getElementById("message");
+    const overlay = document.getElementById("overlay");
+    const claimBtn = document.getElementById("claimBtn");
+    const closeBtn = document.getElementById("closeBtn");
+    const errorBox = document.getElementById("errorBox");
+
+    let board = [];
+    let finished = false;
+    let picked = false;
+    let pickedIndex = null;
+    let validSession = Boolean(sessionId);
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function buildBoard() {
+      const items = [];
+
+      for (let i = 0; i < 8; i++) {
+        items.push({ type: "mine", value: 0, icon: "💣" });
+      }
+
+      const bonusValues = [5, 5, 5, 5, 10, 10, 10, 10, 12, 12, 12, 15, 15, 15, 20, 20];
+      for (const value of bonusValues) {
+        items.push({ type: "bonus", value, icon: `+${value}` });
+      }
+
+      items.push({ type: "phoenix", value: 1000, icon: "🐦‍🔥" });
+
+      board = shuffle(items).map((item, index) => ({
+        id: index,
+        ...item,
+        open: false
+      }));
+    }
+
+    function showError(text) {
+      errorBox.textContent = text;
+      errorBox.classList.add("show");
+    }
+
+    function render() {
+      gridEl.innerHTML = "";
+
+      board.forEach((cell, index) => {
+        const btn = document.createElement("button");
+        btn.className = "cell" + (cell.open ? " open" : "");
+        btn.disabled = finished || cell.open || !validSession;
+
+        btn.innerHTML = `
+          <div class="inner">
+            <div class="face front">✨</div>
+            <div class="face back ${cell.type}">
+              ${cell.type === "bonus" ? `<span>${cell.icon}</span>` : cell.icon}
+            </div>
+          </div>
+        `;
+
+        btn.addEventListener("click", () => openCell(index));
+        gridEl.appendChild(btn);
+      });
+    }
+
+    function sendPick(cellIndex) {
+      if (!sessionId) {
+        showError("Ошибка: отсутствует session_id");
+        return;
+      }
+
+      const payload = {
+        game: "phoenix",
+        session_id: sessionId,
+        cell_index: cellIndex
+      };
+
+      tg.sendData(JSON.stringify(payload));
+      setTimeout(() => tg.close(), 250);
+    }
+
+    function openCell(index) {
+      if (finished || picked || !validSession) return;
+
+      picked = true;
+      pickedIndex = index;
+
+      const cell = board[index];
+      cell.open = true;
+      render();
+
+      setTimeout(() => {
+        finished = true;
+
+        if (cell.type === "phoenix") {
+          msgEl.textContent = "🔥 Феникс найден!";
+          overlay.classList.add("show");
+          return;
+        }
+
+        if (cell.type === "bonus") {
+          msgEl.textContent = `🎁 Бонусная клетка`;
+          sendPick(index);
+          return;
+        }
+
+        msgEl.textContent = "💣 Мина!";
+        sendPick(index);
+      }, 650);
+    }
+
+    claimBtn.addEventListener("click", () => {
+      if (pickedIndex === null) return;
+      sendPick(pickedIndex);
+    });
+
+    closeBtn.addEventListener("click", () => {
+      tg.close();
+    });
+
+    buildBoard();
+
+    if (!validSession) {
+      finished = true;
+      msgEl.textContent = "⚠️ Игровая сессия не найдена";
+      showError("Открой игру заново из бота.");
+    }
+
+    render();
+  </script>
+</body>
+</html>
