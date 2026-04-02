@@ -566,7 +566,6 @@
 
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id") || "";
-    const boardParam = params.get("board") || "";
 
     const gridEl = document.getElementById("grid");
     const msgEl = document.getElementById("message");
@@ -583,67 +582,22 @@
     const modalTitle = document.getElementById("modalTitle");
     const modalText = document.getElementById("modalText");
 
-    let board = [];
+    let board = Array.from({ length: 25 }, (_, index) => ({
+      id: index,
+      type: "hidden",
+      value: 0,
+      open: false,
+      explode: false,
+      picked: false,
+      shine: false,
+      bonusPop: false,
+    }));
+
     let finished = false;
     let validSession = Boolean(sessionId);
     let openedCount = 0;
     const totalAttempts = 5;
     let currentLocked = false;
-    let totalReward = 0;
-
-    function normalizeCellType(rawType, rawValue) {
-      const value = Number(rawValue || 0);
-
-      if (rawType === "phoenix" || value === 3000) return "phoenix";
-      if (rawType === "gold_coin" || value === 1000) return "gold_coin";
-      if (rawType === "silver_coin" || value === 500) return "silver_coin";
-
-      return rawType;
-    }
-
-    function getNormalizedValue(type, rawValue) {
-      const value = Number(rawValue || 0);
-
-      if (type === "phoenix") return 3000;
-      if (type === "gold_coin") return 1000;
-      if (type === "silver_coin") return 500;
-
-      return value;
-    }
-
-    function decodeBoard(encoded) {
-      if (!encoded) return [];
-
-      try {
-        const normalized = encoded.replace(/-/g, "+").replace(/_/g, "/");
-        const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
-        const jsonText = decodeURIComponent(escape(window.atob(padded)));
-        const rawBoard = JSON.parse(jsonText);
-
-        if (!Array.isArray(rawBoard) || rawBoard.length !== 25) {
-          return [];
-        }
-
-        return rawBoard.map((item, index) => {
-          const type = normalizeCellType(item.type, item.value);
-          const value = getNormalizedValue(type, item.value);
-
-          return {
-            id: index,
-            type,
-            value,
-            open: false,
-            explode: false,
-            picked: false,
-            shine: false,
-            bonusPop: false,
-          };
-        });
-      } catch (error) {
-        console.error("BOARD_DECODE_ERROR", error);
-        return [];
-      }
-    }
 
     function showError(text) {
       errorBox.textContent = text;
@@ -665,6 +619,7 @@
     }
 
     function getBackContent(cell) {
+      if (!cell.open) return "";
       if (cell.type === "bonus") return "";
       if (cell.type === "phoenix") return `<span class="prize-icon">🔥</span>`;
       if (cell.type === "gold_coin") return getCoinMarkup("gold", "◉");
@@ -742,18 +697,15 @@
     function finishGame() {
       finished = true;
       currentLocked = false;
-      revealAllCells();
-      updateHeader(`итог: ${totalReward} DOGS`);
+      updateHeader("игра завершена");
       resultTitle.textContent = "Игра завершена";
-      resultText.textContent = `Общий выигрыш: ${totalReward} DOGS. Выигрыш отправлен в бот и будет зачислен на баланс.`;
+      resultText.textContent = "Результат отправлен в бот. Итог и зачисление считаются только на сервере.";
 
-      
       if (sessionId) {
         tg.sendData(JSON.stringify({
           game: "phoenix",
           action: "finish",
-          session_id: sessionId,
-          total_reward: totalReward
+          session_id: sessionId
         }));
       }
 
@@ -785,39 +737,36 @@
     function applyCellEffects(cell) {
       if (cell.type === "mine") {
         cell.explode = true;
-        updateHeader("мина 0 DOGS");
+        updateHeader("мина");
         return;
       }
 
-      totalReward += cell.value;
-
       if (cell.type === "phoenix") {
         cell.shine = true;
-        updateHeader(`феникс ${cell.value} DOGS`);
+        updateHeader("феникс");
         return;
       }
 
       if (cell.type === "gold_coin") {
         cell.shine = true;
-        updateHeader(`золотая монета ${cell.value} DOGS`);
+        updateHeader("золотая монета");
         return;
       }
 
       if (cell.type === "silver_coin") {
         cell.shine = true;
-        updateHeader(`серебряная монета ${cell.value} DOGS`);
+        updateHeader("серебряная монета");
         return;
       }
 
       cell.bonusPop = true;
-      updateHeader(`бонус ${cell.value} DOGS`);
+      updateHeader("бонус");
 
       setTimeout(() => {
         cell.bonusPop = false;
         render();
       }, 450);
     }
-
     function finalizePick(index) {
       const cell = board[index];
       sendPick(index);
@@ -850,13 +799,15 @@
       openedCount += 1;
       render();
 
-      const afterRevealDelay = cell.type === "mine" ? 900 : 650;
+      sendPick(index);
 
-      setTimeout(() => {
-        applyCellEffects(cell);
-        render();
-        finalizePick(index);
-      }, afterRevealDelay);
+      if (openedCount >= totalAttempts) {
+        finishGame();
+        return;
+      }
+
+      currentLocked = false;
+      render();
     }
 
     claimBtn.addEventListener("click", () => {
@@ -881,7 +832,7 @@
 
     board = decodeBoard(boardParam);
 
-    if (!validSession || !board.length) {
+    if (!validSession) {
       finished = true;
       msgEl.textContent = "⚠️ Игровая сессия не найдена";
       showError("Открой игру заново из бота.");
