@@ -22,9 +22,19 @@
       --blue2: #102738;
       --phoenix1: #5a2600;
       --phoenix2: #2b1200;
+      --pickedFront1: #4f347c;
+      --pickedFront2: #2f1d55;
+      --pickedBonus1: #1b5f7f;
+      --pickedBonus2: #123f57;
+      --pickedMine1: #7a2032;
+      --pickedMine2: #521321;
+      --pickedPhoenix1: #7b3d00;
+      --pickedPhoenix2: #4b2100;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -104,42 +114,11 @@
       padding: 0;
       cursor: pointer;
       perspective: 1000px;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .cell:disabled {
       cursor: default;
-    }
-
-    .cell.explode .front,
-    .cell.explode .back.mine {
-      animation: bombShake 0.38s ease-in-out;
-    }
-
-    .blast {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 30px;
-      pointer-events: none;
-      animation: blastPop 0.55s ease-out forwards;
-      z-index: 5;
-      filter: drop-shadow(0 0 16px rgba(255, 138, 0, 0.8));
-    }
-
-    @keyframes bombShake {
-      0%, 100% { transform: translateX(0) scale(1); }
-      20% { transform: translateX(-4px) scale(1.03); }
-      40% { transform: translateX(4px) scale(1.05); }
-      60% { transform: translateX(-3px) scale(1.04); }
-      80% { transform: translateX(3px) scale(1.02); }
-    }
-
-    @keyframes blastPop {
-      0% { transform: scale(0.25); opacity: 0; }
-      40% { transform: scale(1.22); opacity: 1; }
-      100% { transform: scale(1.6); opacity: 0; }
     }
 
     .inner {
@@ -152,6 +131,11 @@
 
     .cell.open .inner {
       transform: rotateY(180deg) scale(1.02);
+    }
+
+    .cell.explode .front,
+    .cell.explode .back.mine {
+      animation: bombShake 0.38s ease-in-out;
     }
 
     .face {
@@ -178,6 +162,7 @@
       transform: rotateY(180deg);
       border: 1px solid rgba(255,255,255,0.1);
       font-size: 28px;
+      overflow: hidden;
     }
 
     .back.mine {
@@ -186,7 +171,20 @@
 
     .back.bonus {
       background: linear-gradient(180deg, var(--blue1), var(--blue2));
-      font-size: 22px;
+      color: #ffffff;
+    }
+
+    .bonus-value {
+      display: inline-block;
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1;
+      color: #ffffff;
+      text-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.45),
+        0 0 18px rgba(255, 255, 255, 0.18);
+      letter-spacing: 0.3px;
+      font-variant-numeric: tabular-nums;
     }
 
     .back.phoenix {
@@ -197,9 +195,49 @@
       animation: phoenixPulse 1s ease-in-out infinite;
     }
 
-    @keyframes phoenixPulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(255,170,0,0.35); }
-      50% { box-shadow: 0 0 42px rgba(255,170,0,0.75); }
+    .cell.revealed-picked .front {
+      background: linear-gradient(180deg, var(--pickedFront1), var(--pickedFront2));
+      border-color: rgba(255,255,255,0.16);
+    }
+
+    .cell.revealed-picked .back {
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 213, 74, 0.34),
+        0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .cell.revealed-picked .back.bonus {
+      background: linear-gradient(180deg, var(--pickedBonus1), var(--pickedBonus2));
+    }
+
+    .cell.revealed-picked .back.bonus .bonus-value {
+      color: #ffd54a;
+      text-shadow:
+        0 2px 12px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(255, 213, 74, 0.28);
+    }
+
+    .cell.revealed-picked .back.mine {
+      background: linear-gradient(180deg, var(--pickedMine1), var(--pickedMine2));
+    }
+
+    .cell.revealed-picked .back.phoenix {
+      background:
+        radial-gradient(circle at center, rgba(255,213,74,0.45), transparent 55%),
+        linear-gradient(180deg, var(--pickedPhoenix1), var(--pickedPhoenix2));
+    }
+
+    .blast {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      pointer-events: none;
+      animation: blastPop 0.55s ease-out forwards;
+      z-index: 5;
+      filter: drop-shadow(0 0 16px rgba(255, 138, 0, 0.8));
     }
 
     .message {
@@ -243,6 +281,7 @@
       justify-content: center;
       background: rgba(8,5,18,0.75);
       padding: 20px;
+      z-index: 30;
     }
 
     .overlay.show {
@@ -263,12 +302,6 @@
       font-size: 72px;
       filter: drop-shadow(0 0 22px rgba(255,183,3,0.65));
       animation: phoenixPop 0.9s ease forwards;
-    }
-
-    @keyframes phoenixPop {
-      0% { transform: scale(0.2) rotate(-20deg); opacity: 0; }
-      60% { transform: scale(1.18) rotate(8deg); opacity: 1; }
-      100% { transform: scale(1) rotate(0); opacity: 1; }
     }
 
     .reward {
@@ -298,16 +331,6 @@
       display: block;
     }
 
-
-    .cell.revealed-picked .front {
-      background: linear-gradient(180deg, #4f347c, #2f1d55);
-      border-color: rgba(255,255,255,0.16);
-    }
-
-    .cell.revealed-picked .back {
-      box-shadow: inset 0 0 0 2px rgba(255, 213, 74, 0.28);
-    }
-
     .result-panel {
       margin-top: 16px;
       padding: 14px;
@@ -334,8 +357,33 @@
       text-align: center;
       color: var(--muted);
       font-size: 14px;
+      line-height: 1.4;
     }
 
+    @keyframes bombShake {
+      0%, 100% { transform: translateX(0) scale(1); }
+      20% { transform: translateX(-4px) scale(1.03); }
+      40% { transform: translateX(4px) scale(1.05); }
+      60% { transform: translateX(-3px) scale(1.04); }
+      80% { transform: translateX(3px) scale(1.02); }
+    }
+
+    @keyframes blastPop {
+      0% { transform: scale(0.25); opacity: 0; }
+      40% { transform: scale(1.22); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    @keyframes phoenixPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(255,170,0,0.35); }
+      50% { box-shadow: 0 0 42px rgba(255,170,0,0.75); }
+    }
+
+    @keyframes phoenixPop {
+      0% { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+      60% { transform: scale(1.18) rotate(8deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -357,10 +405,13 @@
 
       <div id="message" class="message">Попытки: 0/5</div>
       <div id="errorBox" class="error-box"></div>
+
       <div id="resultPanel" class="result-panel">
         <b id="resultTitle">Игра завершена</b>
         <div id="resultText">Общий выигрыш: 0 DOGS</div>
-        <div class="hint">Поля открыты. Нажмите «Закрыть», чтобы вернуться в бота.</div>
+        <div class="hint">
+          Все поля открыты. Нажмите «Закрыть», чтобы вернуться в бота.
+        </div>
       </div>
 
       <div class="controls">
@@ -406,11 +457,11 @@
     let openedCount = 0;
     const totalAttempts = 5;
     let currentLocked = false;
-    let pickedIndex = null;
     let totalReward = 0;
 
     function decodeBoard(encoded) {
       if (!encoded) return [];
+
       try {
         const normalized = encoded.replace(/-/g, "+").replace(/_/g, "/");
         const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
@@ -425,7 +476,7 @@
           id: index,
           type: item.type,
           value: Number(item.value || 0),
-          icon: item.type === "mine" ? "💣" : item.type === "phoenix" ? "🐦‍🔥" : `${Number(item.value || 0)}`,
+          icon: item.type === "mine" ? "💣" : item.type === "phoenix" ? "🐦‍🔥" : "",
           open: false,
           explode: false,
           picked: false,
@@ -451,24 +502,31 @@
       msgEl.textContent = extraText ? `${base} • ${extraText}` : base;
     }
 
+    function getBackContent(cell) {
+      if (cell.type === "bonus") {
+        return `<span class="bonus-value">+${cell.value}</span>`;
+      }
+      return cell.icon;
+    }
+
     function render() {
       gridEl.innerHTML = "";
 
       board.forEach((cell, index) => {
         const btn = document.createElement("button");
-        btn.className = "cell"
-          + (cell.open ? " open" : "")
-          + (cell.explode ? " explode" : "")
-          + (cell.picked ? " revealed-picked" : "");
-        btn.disabled = finished || cell.open || !validSession || currentLocked;
+        btn.className =
+          "cell" +
+          (cell.open ? " open" : "") +
+          (cell.explode ? " explode" : "") +
+          (cell.picked ? " revealed-picked" : "");
 
-        const bonusText = cell.type === "bonus" ? `<span>+${cell.icon}</span>` : cell.icon;
+        btn.disabled = finished || cell.open || !validSession || currentLocked;
 
         btn.innerHTML = `
           <div class="inner">
             <div class="face front">✨</div>
             <div class="face back ${cell.type}">
-              ${bonusText}
+              ${getBackContent(cell)}
             </div>
             ${cell.explode ? '<div class="blast">💥</div>' : ""}
           </div>
@@ -552,7 +610,6 @@
 
       hideError();
       currentLocked = true;
-      pickedIndex = index;
 
       cell.open = true;
       cell.picked = true;
