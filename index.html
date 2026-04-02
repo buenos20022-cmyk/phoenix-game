@@ -16,12 +16,33 @@
       --gold: #ffd54a;
       --orange: #ff8a00;
       --pink: #ff3d7f;
+      --red1: #4b1320;
+      --red2: #2a0d15;
+
       --blue1: #12384b;
       --blue2: #102738;
+
+      --phoenix1: #5a2600;
+      --phoenix2: #2b1200;
+
+      --goldCoin1: #8a6908;
+      --goldCoin2: #5b3d00;
+
+      --silverCoin1: #7a879b;
+      --silverCoin2: #495466;
+
       --pickedFront1: #4f347c;
       --pickedFront2: #2f1d55;
-      --pickedBack1: #1b5f7f;
-      --pickedBack2: #123f57;
+      --pickedBonus1: #1b5f7f;
+      --pickedBonus2: #123f57;
+      --pickedMine1: #7a2032;
+      --pickedMine2: #521321;
+      --pickedPhoenix1: #7b3d00;
+      --pickedPhoenix2: #4b2100;
+      --pickedGold1: #9a7408;
+      --pickedGold2: #6a4700;
+      --pickedSilver1: #8795ad;
+      --pickedSilver2: #556071;
     }
 
     * {
@@ -126,6 +147,21 @@
       transform: rotateY(180deg) scale(1.02);
     }
 
+    .cell.explode .front,
+    .cell.explode .back.mine {
+      animation: bombShake 0.38s ease-in-out;
+    }
+
+    .cell.shine .back.gold_coin,
+    .cell.shine .back.silver_coin,
+    .cell.shine .back.phoenix {
+      animation: prizeShine 0.9s ease;
+    }
+
+    .cell.bonus-pop .back.bonus {
+      animation: bonusCardGlow 0.55s ease;
+    }
+
     .face {
       position: absolute;
       inset: 0;
@@ -148,11 +184,76 @@
 
     .back {
       transform: rotateY(180deg);
-      border: 1px solid rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 28px;
+      overflow: hidden;
+    }
+
+    .back.mine {
+      background: linear-gradient(180deg, var(--red1), var(--red2));
+    }
+
+    .back.bonus {
       background: linear-gradient(180deg, var(--blue1), var(--blue2));
       color: #ffffff;
-      font-size: 18px;
-      overflow: hidden;
+    }
+
+    .back.phoenix {
+      background:
+        radial-gradient(circle at center, rgba(255,160,64,0.40), transparent 55%),
+        linear-gradient(180deg, var(--phoenix1), var(--phoenix2));
+      box-shadow: 0 0 24px rgba(255,120,0,0.35);
+    }
+
+    .back.gold_coin {
+      background:
+        radial-gradient(circle at center, rgba(255,220,120,0.45), transparent 55%),
+        linear-gradient(180deg, var(--goldCoin1), var(--goldCoin2));
+      box-shadow: 0 0 22px rgba(255,213,74,0.30);
+    }
+
+    .back.silver_coin {
+      background:
+        radial-gradient(circle at center, rgba(220,230,255,0.30), transparent 55%),
+        linear-gradient(180deg, var(--silverCoin1), var(--silverCoin2));
+      box-shadow: 0 0 18px rgba(220,230,255,0.20);
+    }
+
+    .bonus-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1;
+      color: #ffffff;
+      font-family: Georgia, "Times New Roman", serif;
+      text-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.55),
+        0 0 10px rgba(255, 255, 255, 0.12);
+      letter-spacing: 0.2px;
+      font-variant-numeric: tabular-nums;
+      opacity: 0;
+      transform: rotateY(180deg) scale(0.7);
+      transition: opacity 0.18s ease;
+      pointer-events: none;
+      z-index: 8;
+      backface-visibility: hidden;
+    }
+
+    .bonus-overlay.show {
+      opacity: 1;
+      transform: rotateY(180deg) scale(1);
+      animation: bonusValuePop 0.42s ease;
+    }
+
+    .bonus-overlay.picked {
+      color: #ffe59d;
+      text-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.6),
+        0 0 14px rgba(255, 213, 74, 0.22);
     }
 
     .cell.revealed-picked .front {
@@ -161,10 +262,81 @@
     }
 
     .cell.revealed-picked .back {
-      background: linear-gradient(180deg, var(--pickedBack1), var(--pickedBack2));
       box-shadow:
         inset 0 0 0 2px rgba(255, 213, 74, 0.34),
         0 0 0 1px rgba(255,255,255,0.06);
+    }
+
+    .cell.revealed-picked .back.bonus {
+      background: linear-gradient(180deg, var(--pickedBonus1), var(--pickedBonus2));
+    }
+
+    .cell.revealed-picked .back.mine {
+      background: linear-gradient(180deg, var(--pickedMine1), var(--pickedMine2));
+    }
+
+    .cell.revealed-picked .back.phoenix {
+      background:
+        radial-gradient(circle at center, rgba(255,170,90,0.48), transparent 55%),
+        linear-gradient(180deg, var(--pickedPhoenix1), var(--pickedPhoenix2));
+    }
+
+    .cell.revealed-picked .back.gold_coin {
+      background:
+        radial-gradient(circle at center, rgba(255,225,120,0.46), transparent 55%),
+        linear-gradient(180deg, var(--pickedGold1), var(--pickedGold2));
+    }
+
+    .cell.revealed-picked .back.silver_coin {
+      background:
+        radial-gradient(circle at center, rgba(235,240,255,0.34), transparent 55%),
+        linear-gradient(180deg, var(--pickedSilver1), var(--pickedSilver2));
+    }
+
+    .prize-icon {
+      font-size: 36px;
+      filter: drop-shadow(0 0 12px rgba(255,255,255,0.16));
+      transform: translateZ(2px);
+    }
+
+    .coin-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      box-shadow:
+        inset 0 2px 3px rgba(255,255,255,0.30),
+        inset 0 -3px 5px rgba(0,0,0,0.18),
+        0 4px 12px rgba(0,0,0,0.22);
+    }
+
+    .coin-icon.gold {
+      background: radial-gradient(circle at 30% 30%, #fff0a8 0%, #ffd54a 35%, #d9a400 70%, #9a6b00 100%);
+      color: #7a5200;
+      border: 1px solid rgba(255, 235, 170, 0.55);
+    }
+
+    .coin-icon.silver {
+      background: radial-gradient(circle at 30% 30%, #ffffff 0%, #dce4f0 35%, #a9b5c6 70%, #68778d 100%);
+      color: #506072;
+      border: 1px solid rgba(255,255,255,0.45);
+    }
+
+    .blast {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      pointer-events: none;
+      animation: blastPop 0.55s ease-out forwards;
+      z-index: 9;
+      filter: drop-shadow(0 0 16px rgba(255, 138, 0, 0.8));
     }
 
     .message {
@@ -194,6 +366,66 @@
 
     .btn.dark {
       background: rgba(255,255,255,0.08);
+    }
+
+    .btn.primary {
+      background: linear-gradient(90deg, var(--orange), var(--pink));
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8,5,18,0.75);
+      padding: 20px;
+      z-index: 30;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(420px, 100%);
+      background: linear-gradient(180deg, #24153d, #1a102e);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 26px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    }
+
+    .modal-icon {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: prizePop 0.7s ease forwards;
+      filter: drop-shadow(0 0 22px rgba(255,183,3,0.35));
+    }
+
+    .modal-icon .coin-icon {
+      width: 72px;
+      height: 72px;
+      font-size: 34px;
+    }
+
+    .modal-icon .prize-icon {
+      font-size: 72px;
+    }
+
+    .reward {
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--gold);
+      margin: 12px 0 4px;
+    }
+
+    .small {
+      color: var(--muted);
+      margin-bottom: 16px;
     }
 
     .error-box {
@@ -239,6 +471,44 @@
       font-size: 14px;
       line-height: 1.4;
     }
+
+    @keyframes bombShake {
+      0%, 100% { transform: translateX(0) scale(1); }
+      20% { transform: translateX(-4px) scale(1.03); }
+      40% { transform: translateX(4px) scale(1.05); }
+      60% { transform: translateX(-3px) scale(1.04); }
+      80% { transform: translateX(3px) scale(1.02); }
+    }
+
+    @keyframes blastPop {
+      0% { transform: scale(0.25); opacity: 0; }
+      40% { transform: scale(1.22); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    @keyframes prizePop {
+      0% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+      60% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    @keyframes prizeShine {
+      0% { transform: rotateY(180deg) scale(1.02); filter: brightness(1); }
+      50% { transform: rotateY(180deg) scale(1.08); filter: brightness(1.25); }
+      100% { transform: rotateY(180deg) scale(1.02); filter: brightness(1); }
+    }
+
+    @keyframes bonusValuePop {
+      0% { transform: rotateY(180deg) scale(0.55); opacity: 0; }
+      65% { transform: rotateY(180deg) scale(1.12); opacity: 1; }
+      100% { transform: rotateY(180deg) scale(1); opacity: 1; }
+    }
+
+    @keyframes bonusCardGlow {
+      0% { filter: brightness(1); }
+      45% { filter: brightness(1.22); }
+      100% { filter: brightness(1); }
+    }
   </style>
 </head>
 <body>
@@ -247,13 +517,13 @@
       <div class="title">🔥 Найди Феникса</div>
       <div class="subtitle">
         Сделай 5 попыток.<br>
-        Результат каждой клетки и итог игры считаются только на сервере.
+        На поле спрятаны мины, бонусы, золотая и серебряная монеты, а также огненный феникс.
       </div>
 
       <div class="stats">
-        <div class="stat"><b>5</b><span>Попыток</span></div>
-        <div class="stat"><b>25</b><span>Клеток</span></div>
-        <div class="stat"><b>BOT</b><span>Проверка</span></div>
+        <div class="stat"><b>8</b><span>Мин</span></div>
+        <div class="stat"><b>17</b><span>Призов</span></div>
+        <div class="stat"><b>3000</b><span>DOGS</span></div>
       </div>
 
       <div id="grid" class="grid"></div>
@@ -263,15 +533,29 @@
 
       <div id="resultPanel" class="result-panel">
         <b id="resultTitle">Игра завершена</b>
-        <div id="resultText">Результат отправлен в бот.</div>
+        <div id="resultText">Общий выигрыш: 0 DOGS</div>
         <div class="hint">
-          Итог игры и начисление будут обработаны ботом. Нажмите «Закрыть», чтобы вернуться в чат.
+          Все поля открыты. Нажмите «Закрыть», чтобы вернуться в бота.
         </div>
       </div>
 
       <div class="controls">
         <button id="closeBtn" class="btn dark">Закрыть</button>
       </div>
+    </div>
+  </div>
+
+  <div id="overlay" class="overlay">
+    <div class="modal">
+      <div id="modalIcon" class="modal-icon">
+        <span class="prize-icon">🔥</span>
+      </div>
+      <div id="modalReward" class="reward">3000 DOGS</div>
+      <div id="modalTitle" style="font-size: 22px; font-weight: 900; margin-bottom: 8px;">
+        ФЕНИКС ОТКРЫТ
+      </div>
+      <div id="modalText" class="small">Продолжаем игру</div>
+      <button id="claimBtn" class="btn primary">Продолжить</button>
     </div>
   </div>
 
@@ -282,26 +566,38 @@
 
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id") || "";
+    const apiBase = (params.get("api") || "").replace(/\/+$/, "");
 
     const gridEl = document.getElementById("grid");
     const msgEl = document.getElementById("message");
+    const overlay = document.getElementById("overlay");
+    const claimBtn = document.getElementById("claimBtn");
     const closeBtn = document.getElementById("closeBtn");
     const errorBox = document.getElementById("errorBox");
     const resultPanel = document.getElementById("resultPanel");
     const resultTitle = document.getElementById("resultTitle");
     const resultText = document.getElementById("resultText");
 
-    const totalAttempts = 5;
+    const modalIcon = document.getElementById("modalIcon");
+    const modalReward = document.getElementById("modalReward");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalText = document.getElementById("modalText");
 
     let board = Array.from({ length: 25 }, (_, index) => ({
       id: index,
+      type: "hidden",
+      value: 0,
       open: false,
-      picked: false
+      explode: false,
+      picked: false,
+      shine: false,
+      bonusPop: false,
     }));
 
     let finished = false;
     let validSession = Boolean(sessionId);
     let openedCount = 0;
+    const totalAttempts = 5;
     let currentLocked = false;
 
     function showError(text) {
@@ -319,9 +615,25 @@
       msgEl.textContent = extraText ? `${base} • ${extraText}` : base;
     }
 
+    function getCoinMarkup(kind, symbol) {
+      return `<span class="coin-icon ${kind}">${symbol}</span>`;
+    }
+
     function getBackContent(cell) {
       if (!cell.open) return "";
-      return `<span>✓</span>`;
+      if (cell.type === "bonus") return "";
+      if (cell.type === "phoenix") return `<span class="prize-icon">🔥</span>`;
+      if (cell.type === "gold_coin") return getCoinMarkup("gold", "◉");
+      if (cell.type === "silver_coin") return getCoinMarkup("silver", "◉");
+      if (cell.type === "mine") return "💣";
+      return "";
+    }
+
+    function getModalIconMarkup(type) {
+      if (type === "phoenix") return `<span class="prize-icon">🔥</span>`;
+      if (type === "gold_coin") return getCoinMarkup("gold", "◉");
+      if (type === "silver_coin") return getCoinMarkup("silver", "◉");
+      return `<span class="prize-icon">🔥</span>`;
     }
 
     function render() {
@@ -332,16 +644,25 @@
         btn.className =
           "cell" +
           (cell.open ? " open" : "") +
-          (cell.picked ? " revealed-picked" : "");
+          (cell.explode ? " explode" : "") +
+          (cell.picked ? " revealed-picked" : "") +
+          (cell.shine ? " shine" : "") +
+          (cell.bonusPop ? " bonus-pop" : "");
 
         btn.disabled = finished || cell.open || !validSession || currentLocked;
 
         btn.innerHTML = `
           <div class="inner">
             <div class="face front">✨</div>
-            <div class="face back">
+            <div class="face back ${cell.type}">
               ${getBackContent(cell)}
             </div>
+            ${
+              cell.type === "bonus"
+                ? `<div class="bonus-overlay ${cell.open ? "show" : ""} ${cell.picked ? "picked" : ""}">${cell.value}</div>`
+                : ""
+            }
+            ${cell.explode ? '<div class="blast">💥</div>' : ""}
           </div>
         `;
 
@@ -350,31 +671,66 @@
       });
     }
 
-    function sendPick(cellIndex) {
+    async function sendPick(cellIndex) {
       if (!sessionId) {
         showError("Ошибка: отсутствует session_id");
         currentLocked = false;
         render();
-        return false;
+        return null;
       }
 
-      const payload = {
-        game: "phoenix",
-        session_id: sessionId,
-        cell_index: cellIndex
-      };
+      if (!apiBase) {
+        showError("Ошибка: отсутствует api url");
+        currentLocked = false;
+        render();
+        return null;
+      }
 
-      tg.sendData(JSON.stringify(payload));
-      return true;
+      try {
+        const res = await fetch(`${apiBase}/phoenix/pick`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            uid: tg.initDataUnsafe?.user?.id || 0,
+            session_id: sessionId,
+            cell_index: cellIndex
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          showError("Ошибка хода. Попробуй ещё раз.");
+          currentLocked = false;
+          render();
+          return null;
+        }
+
+        return data;
+      } catch (e) {
+        showError("Нет соединения с сервером.");
+        currentLocked = false;
+        render();
+        return null;
+      }
     }
 
-    function finishGame() {
+    function revealAllCells() {
+      board.forEach((cell) => {
+        cell.open = true;
+      });
+      render();
+    }
+
+    function finishGame(totalReward) {
       finished = true;
       currentLocked = false;
 
-      updateHeader("игра завершена");
+      updateHeader(`итог: ${totalReward} DOGS`);
       resultTitle.textContent = "Игра завершена";
-      resultText.textContent = "Все 5 ходов отправлены в бот. Итог и начисление считаются только на сервере.";
+      resultText.textContent = `Выигрыш: ${totalReward} DOGS`;
 
       if (sessionId) {
         tg.sendData(JSON.stringify({
@@ -388,7 +744,63 @@
       render();
     }
 
-    function openCell(index) {
+    function showPrizeModal(cell) {
+      modalIcon.innerHTML = getModalIconMarkup(cell.type);
+
+      if (cell.type === "phoenix") {
+        modalReward.textContent = "3000 DOGS";
+        modalTitle.textContent = "ФЕНИКС ОТКРЫТ";
+        modalText.textContent = "Огненный феникс найден, вы получаете 3000 DOGS. Продолжаем игру.";
+      } else if (cell.type === "gold_coin") {
+        modalReward.textContent = "1000 DOGS";
+        modalTitle.textContent = "ЗОЛОТАЯ МОНЕТА";
+        modalText.textContent = "Вы открыли золотую монету и получили 1000 DOGS. Продолжаем игру.";
+      } else if (cell.type === "silver_coin") {
+        modalReward.textContent = "500 DOGS";
+        modalTitle.textContent = "СЕРЕБРЯНАЯ МОНЕТА";
+        modalText.textContent = "Вы открыли серебряную монету и получили 500 DOGS. Продолжаем игру.";
+      } else {
+        return;
+      }
+
+      overlay.classList.add("show");
+    }
+
+    function applyCellEffects(cell) {
+      if (cell.type === "mine") {
+        cell.explode = true;
+        updateHeader("мина");
+        return;
+      }
+
+      if (cell.type === "phoenix") {
+        cell.shine = true;
+        updateHeader("феникс");
+        return;
+      }
+
+      if (cell.type === "gold_coin") {
+        cell.shine = true;
+        updateHeader("золотая монета");
+        return;
+      }
+
+      if (cell.type === "silver_coin") {
+        cell.shine = true;
+        updateHeader("серебряная монета");
+        return;
+      }
+
+      cell.bonusPop = true;
+      updateHeader("бонус");
+
+      setTimeout(() => {
+        cell.bonusPop = false;
+        render();
+      }, 450);
+    }
+    
+    async function openCell(index) {
       if (finished || currentLocked || !validSession) return;
 
       const cell = board[index];
@@ -397,33 +809,65 @@
       hideError();
       currentLocked = true;
 
-      const sent = sendPick(index);
-      if (!sent) {
+      const result = await sendPick(index);
+
+      if (!result) {
         return;
       }
 
       cell.open = true;
       cell.picked = true;
-      openedCount += 1;
+      cell.type = result.result_type;
+      cell.value = result.reward;
+
+      openedCount = result.attempts_used;
+      applyCellEffects(cell);
+      render();
+
+      if (cell.type === "phoenix" || cell.type === "gold_coin" || cell.type === "silver_coin") {
+        showPrizeModal(cell);
+        return;
+      }
+
+      if (result.is_finished) {
+        finishGame(result.total_reward);
+        return;
+      }
+
+      currentLocked = false;
+      render();
+    }
+
+    claimBtn.addEventListener("click", () => {
+      overlay.classList.remove("show");
+
+      board.forEach((cell) => {
+        cell.shine = false;
+      });
 
       if (openedCount >= totalAttempts) {
         finishGame();
         return;
       }
 
-      updateHeader("ход отправлен");
       currentLocked = false;
       render();
-    }
+    });
 
     closeBtn.addEventListener("click", () => {
       tg.close();
     });
 
+   
+
     if (!validSession) {
       finished = true;
       msgEl.textContent = "⚠️ Игровая сессия не найдена";
       showError("Открой игру заново из бота.");
+    } else if (!apiBase) {
+      finished = true;
+      msgEl.textContent = "⚠️ API игры не настроен";
+      showError("На стороне бота не передан адрес API.");
     } else {
       updateHeader();
     }
