@@ -517,12 +517,12 @@
       <div class="title">🔥 Найди Феникса</div>
       <div class="subtitle">
         Сделай 5 попыток.<br>
-        На поле спрятаны мины, монеты и огненный феникс.
+        На поле спрятаны мины, бонусы, золотая и серебряная монеты, а также огненный феникс.
       </div>
 
       <div class="stats">
         <div class="stat"><b>8</b><span>Мин</span></div>
-        <div class="stat"><b>16</b><span>Призов</span></div>
+        <div class="stat"><b>17</b><span>Призов</span></div>
         <div class="stat"><b>3000</b><span>DOGS</span></div>
       </div>
 
@@ -595,7 +595,7 @@
       const value = Number(rawValue || 0);
 
       if (rawType === "phoenix" || value === 3000) return "phoenix";
-      if (rawType === "gold_coin" || value === 2000) return "gold_coin";
+      if (rawType === "gold_coin" || value === 1000) return "gold_coin";
       if (rawType === "silver_coin" || value === 500) return "silver_coin";
 
       return rawType;
@@ -605,7 +605,7 @@
       const value = Number(rawValue || 0);
 
       if (type === "phoenix") return 3000;
-      if (type === "gold_coin") return 2000;
+      if (type === "gold_coin") return 1000;
       if (type === "silver_coin") return 500;
 
       return value;
@@ -745,7 +745,7 @@
       revealAllCells();
       updateHeader(`итог: ${totalReward} DOGS`);
       resultTitle.textContent = "Игра завершена";
-      resultText.textContent = `Общий выигрыш: ${totalReward} DOGS. Результат отправлен в бот.`;
+      resultText.textContent = `Общий выигрыш: ${totalReward} DOGS. Выигрыш отправлен в бот и будет зачислен на баланс.`;
       resultPanel.classList.add("show");
     }
 
@@ -755,15 +755,15 @@
       if (cell.type === "phoenix") {
         modalReward.textContent = "3000 DOGS";
         modalTitle.textContent = "ФЕНИКС ОТКРЫТ";
-        modalText.textContent = "Огненный феникс найден. Продолжаем игру.";
+        modalText.textContent = "Огненный феникс найден, вы получаете 3000 DOGS. Продолжаем игру.";
       } else if (cell.type === "gold_coin") {
-        modalReward.textContent = "2000 DOGS";
+        modalReward.textContent = "1000 DOGS";
         modalTitle.textContent = "ЗОЛОТАЯ МОНЕТА";
-        modalText.textContent = "Вы открыли золотую монету. Продолжаем игру.";
+        modalText.textContent = "Вы открыли золотую монету и получили 1000 DOGS. Продолжаем игру.";
       } else if (cell.type === "silver_coin") {
         modalReward.textContent = "500 DOGS";
         modalTitle.textContent = "СЕРЕБРЯНАЯ МОНЕТА";
-        modalText.textContent = "Вы открыли серебряную монету. Продолжаем игру.";
+        modalText.textContent = "Вы открыли серебряную монету и получили 500 DOGS. Продолжаем игру.";
       } else {
         return;
       }
