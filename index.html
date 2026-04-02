@@ -746,6 +746,17 @@
       updateHeader(`итог: ${totalReward} DOGS`);
       resultTitle.textContent = "Игра завершена";
       resultText.textContent = `Общий выигрыш: ${totalReward} DOGS. Выигрыш отправлен в бот и будет зачислен на баланс.`;
+
+      
+      if (sessionId) {
+        tg.sendData(JSON.stringify({
+          game: "phoenix",
+          action: "finish",
+          session_id: sessionId,
+          total_reward: totalReward
+        }));
+      }
+
       resultPanel.classList.add("show");
     }
 
